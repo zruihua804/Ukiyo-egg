@@ -1,0 +1,1805 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>広重の江戸 — 歌川広重浮世绘世界</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;700&family=Shippori+Mincho:wght@400;700&family=Noto+Serif+SC:wght@300;400;700&display=swap');
+
+:root {
+  --ink:        #1a1208;
+  --paper:      #f2e8d5;
+  --aged:       #e4d5b8;
+  --vermilion:  #c13528;
+  --indigo:     #1e3f62;
+  --deep-indigo:#0e1f33;
+  --hiroshige-blue: #2a6496;
+  --bokashi-top:#aacce0;
+  --bokashi-mid:#5b9ec9;
+  --bokashi-bot:#1a4a72;
+  --gold:       #b8831a;
+  --pine:       #2a4e1e;
+  --mist:       #7d9db5;
+  --cherry:     #cc5577;
+  --snow:       #eef4f8;
+  --cream:      #f7f0e2;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: 'Noto Serif SC', 'Noto Serif JP', Georgia, serif;
+  overflow-x: hidden;
+}
+
+/* ══════════════════════════════════════
+   WASHI PAPER TEXTURE — SVG filter approach
+   ══════════════════════════════════════ */
+.washi-overlay {
+  position: fixed; inset: 0; pointer-events: none; z-index: 9000;
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 3px,
+      rgba(160,130,80,0.018) 3px,
+      rgba(160,130,80,0.018) 4px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 5px,
+      rgba(120,100,60,0.012) 5px,
+      rgba(120,100,60,0.012) 6px
+    );
+  mix-blend-mode: multiply;
+}
+
+/* Noise grain overlay */
+.grain-overlay {
+  position: fixed; inset: 0; pointer-events: none; z-index: 9001;
+  opacity: 0.35;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23g)' opacity='0.15'/%3E%3C/svg%3E");
+  mix-blend-mode: multiply;
+}
+
+/* ══════════════════════════════════════
+   NAVIGATION
+   ══════════════════════════════════════ */
+nav {
+  position: fixed; top:0; left:0; right:0; z-index:8000;
+  height: 58px;
+  background: rgba(14,31,51,0.97);
+  border-bottom: 2.5px solid var(--vermilion);
+  display: flex; align-items: center;
+  padding: 0 3rem;
+  backdrop-filter: blur(8px);
+}
+
+.nav-logo {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 1.25rem;
+  color: var(--paper);
+  letter-spacing: 0.25em;
+  flex-shrink: 0;
+}
+.nav-logo em { color: var(--vermilion); font-style: normal; }
+
+.nav-links {
+  display: flex; gap: 2.5rem; list-style: none;
+  margin-left: auto;
+}
+.nav-links a {
+  color: var(--mist); text-decoration: none;
+  font-size: 0.82rem; letter-spacing: 0.12em;
+  transition: color 0.3s;
+  cursor: pointer;
+}
+.nav-links a:hover { color: white; }
+
+/* ══════════════════════════════════════
+   HERO — Bokashi Sky
+   ══════════════════════════════════════ */
+.hero {
+  min-height: 100vh;
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+
+/* Bokashi gradient — the defining Hiroshige sky technique */
+.hero-bokashi {
+  position: absolute; inset: 0;
+  background: linear-gradient(
+    180deg,
+    #0c1c2e 0%,
+    #1a3a5c 18%,
+    #2a6496 40%,
+    #4a90c8 56%,
+    #7ab8da 70%,
+    #b0d4e8 82%,
+    #d8eaf4 100%
+  );
+}
+
+/* Woodblock printing bands — simulates the bokashi banding effect */
+.hero-bokashi::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(
+    180deg,
+    transparent 0px,
+    transparent 14px,
+    rgba(0,0,0,0.015) 14px,
+    rgba(0,0,0,0.015) 15px
+  );
+}
+
+/* Mountain layers */
+.hero-scene {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 55%;
+}
+
+/* Floating cherry petals */
+.petals-wrap { position: absolute; inset: 0; pointer-events: none; }
+.petal {
+  position: absolute;
+  width: 7px; height: 7px;
+  background: var(--cherry);
+  border-radius: 0 50% 50% 50%;
+  opacity: 0;
+  animation: petalFall linear infinite;
+}
+@keyframes petalFall {
+  0%   { transform: translateY(-30px) rotate(0deg); opacity: 0.6; }
+  100% { transform: translateY(105vh) rotate(540deg); opacity: 0; }
+}
+
+.hero-content {
+  position: relative; z-index: 10;
+  text-align: center; padding: 2rem;
+  margin-top: -5vh;
+}
+
+.hero-eyebrow {
+  font-size: 0.72rem; letter-spacing: 0.5em; color: var(--bokashi-top);
+  text-transform: uppercase; margin-bottom: 1.2rem;
+  animation: fadeUp 1s ease 0.2s both;
+}
+
+.hero-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: clamp(3.5rem, 9vw, 7.5rem);
+  color: #fff;
+  letter-spacing: 0.35em;
+  line-height: 1;
+  text-shadow: 0 2px 40px rgba(42,100,150,0.5), 0 0 80px rgba(0,0,0,0.3);
+  animation: fadeUp 1.2s ease 0s both;
+}
+
+.hero-rule {
+  width: 70px; height: 2px; background: var(--vermilion);
+  margin: 1.6rem auto;
+  animation: scaleX 0.8s ease 0.5s both;
+  transform-origin: center;
+}
+
+.hero-subtitle {
+  color: rgba(200,220,240,0.9);
+  font-size: clamp(0.85rem, 2vw, 1.05rem);
+  letter-spacing: 0.25em;
+  animation: fadeUp 1.2s ease 0.4s both;
+}
+
+.hero-desc {
+  color: rgba(170,200,220,0.75);
+  font-size: 0.92rem;
+  max-width: 480px; margin: 1.2rem auto 0;
+  line-height: 1.9;
+  animation: fadeUp 1.2s ease 0.6s both;
+}
+
+.hero-cta {
+  display: inline-block; margin-top: 2.5rem;
+  padding: 0.75rem 2.2rem;
+  border: 1.5px solid rgba(200,220,240,0.5);
+  color: white; background: transparent;
+  font-family: inherit; font-size: 0.85rem;
+  letter-spacing: 0.2em; cursor: pointer;
+  transition: all 0.4s;
+  animation: fadeUp 1.2s ease 0.8s both;
+}
+.hero-cta:hover {
+  background: rgba(42,100,150,0.4);
+  border-color: white;
+}
+
+@keyframes fadeUp {
+  from { opacity:0; transform: translateY(24px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+@keyframes scaleX {
+  from { opacity:0; transform: scaleX(0); }
+  to   { opacity:1; transform: scaleX(1); }
+}
+
+/* ══════════════════════════════════════
+   SECTION COMMON
+   ══════════════════════════════════════ */
+.section-head {
+  text-align: center;
+  padding: 5.5rem 2rem 3.5rem;
+}
+.section-eyebrow {
+  font-size: 0.7rem; letter-spacing: 0.45em;
+  color: var(--vermilion); text-transform: uppercase;
+  margin-bottom: 0.9rem;
+}
+.section-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  color: var(--deep-indigo);
+  letter-spacing: 0.08em; line-height: 1.2;
+}
+.section-title small {
+  display: block; font-size: 0.55em;
+  color: var(--mist); margin-top: 0.4rem;
+  letter-spacing: 0.15em;
+}
+.section-rule {
+  width: 50px; height: 2.5px;
+  background: var(--vermilion);
+  margin: 1.4rem auto 0;
+}
+
+/* ══════════════════════════════════════
+   CATEGORIES
+   ══════════════════════════════════════ */
+#categories {
+  background: var(--cream);
+  padding-bottom: 6rem;
+}
+
+.cat-tabs {
+  display: flex; flex-wrap: wrap; gap: 0.6rem;
+  justify-content: center; padding: 0 2rem;
+  margin-bottom: 3rem;
+}
+.cat-tab {
+  padding: 0.55rem 1.3rem;
+  border: 1.5px solid var(--indigo);
+  background: transparent;
+  color: var(--indigo);
+  font-family: inherit; font-size: 0.82rem;
+  letter-spacing: 0.1em; cursor: pointer;
+  transition: all 0.28s;
+  position: relative; overflow: hidden;
+}
+.cat-tab::before {
+  content:''; position:absolute; inset:0;
+  background: var(--indigo);
+  transform: translateX(-101%); transition: transform 0.28s;
+  z-index: 0;
+}
+.cat-tab span { position: relative; z-index: 1; }
+.cat-tab:hover::before, .cat-tab.active::before { transform: translateX(0); }
+.cat-tab:hover, .cat-tab.active { color: var(--paper); border-color: var(--indigo); }
+
+.art-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 2rem;
+  padding: 0 3rem;
+  max-width: 1400px; margin: 0 auto;
+}
+
+/* Individual art card */
+.art-card {
+  display: none;
+  cursor: pointer;
+  position: relative;
+  background: var(--aged);
+  border: 1px solid rgba(30,63,98,0.18);
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+  overflow: hidden;
+}
+.art-card.show { display: block; }
+.art-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 50px rgba(14,31,51,0.18);
+}
+
+/* Card image container with bokashi border effect */
+.card-img {
+  position: relative;
+  width: 100%; aspect-ratio: 3/4;
+  overflow: hidden;
+  background: var(--deep-indigo);
+}
+.card-img img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+  /* Washi paper filter on images */
+  filter: sepia(8%) contrast(0.96) saturate(0.92);
+}
+.art-card:hover .card-img img { transform: scale(1.04); }
+
+/* Bokashi vignette over image — simulates bokashi printing at edges */
+.card-img::after {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse at center, transparent 55%, rgba(14,31,51,0.25) 100%),
+    linear-gradient(to bottom, rgba(14,31,51,0.15) 0%, transparent 20%, transparent 75%, rgba(14,31,51,0.3) 100%);
+  pointer-events: none;
+}
+
+/* Red seal stamp */
+.card-seal {
+  position: absolute; top: 10px; right: 10px;
+  width: 32px; height: 32px;
+  background: var(--vermilion);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Shippori Mincho', serif;
+  font-size: 0.55rem; color: white;
+  writing-mode: vertical-rl;
+  letter-spacing: 0.05em;
+  z-index: 2;
+  box-shadow: 1px 1px 4px rgba(0,0,0,0.4);
+}
+
+/* Series number top-left */
+.card-num {
+  position: absolute; top: 10px; left: 10px;
+  width: 28px; height: 28px;
+  background: rgba(14,31,51,0.7);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.65rem; color: rgba(255,255,255,0.7);
+  z-index: 2;
+  font-family: 'Shippori Mincho', serif;
+}
+
+.card-body {
+  padding: 1.1rem 1.4rem 1.4rem;
+  border-top: 2.5px solid var(--vermilion);
+  position: relative;
+}
+/* Washi fiber simulation lines in card body */
+.card-body::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(
+    92deg,
+    transparent,
+    transparent 18px,
+    rgba(160,130,80,0.06) 18px,
+    rgba(160,130,80,0.06) 19px
+  );
+  pointer-events: none;
+}
+
+.card-cat {
+  font-size: 0.68rem; letter-spacing: 0.25em;
+  color: var(--vermilion); margin-bottom: 0.4rem;
+}
+.card-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 0.98rem; color: var(--deep-indigo);
+  line-height: 1.45;
+}
+.card-title-jp {
+  font-size: 0.78rem; color: var(--mist);
+  margin-top: 0.2rem; font-style: italic;
+}
+.card-date {
+  margin-top: 0.7rem; font-size: 0.72rem;
+  color: var(--gold); letter-spacing: 0.08em;
+}
+
+/* ══════════════════════════════════════
+   MODAL — Lightbox
+   ══════════════════════════════════════ */
+.modal-bg {
+  display: none; position: fixed; inset: 0;
+  background: rgba(8,18,30,0.94);
+  z-index: 9500;
+  align-items: center; justify-content: center;
+  padding: 2rem;
+  overflow-y: auto;
+}
+.modal-bg.open { display: flex; }
+
+.modal {
+  background: var(--cream);
+  max-width: 980px; width: 100%;
+  display: grid; grid-template-columns: 1fr 1fr;
+  border-top: 4px solid var(--vermilion);
+  position: relative;
+  animation: modalIn 0.35s ease;
+  /* Washi grain on modal */
+  background-image:
+    repeating-linear-gradient(92deg, transparent, transparent 20px, rgba(160,130,80,0.04) 20px, rgba(160,130,80,0.04) 21px),
+    repeating-linear-gradient(180deg, transparent, transparent 20px, rgba(120,100,60,0.025) 20px, rgba(120,100,60,0.025) 21px);
+}
+
+@keyframes modalIn {
+  from { opacity:0; transform: scale(0.96) translateY(16px); }
+  to   { opacity:1; transform: scale(1) translateY(0); }
+}
+
+.modal-left {
+  background: var(--deep-indigo);
+  min-height: 480px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 2rem; position: relative; overflow: hidden;
+}
+/* Bokashi strips in modal left panel */
+.modal-left::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(42,100,150,0.15) 0%,
+    transparent 40%,
+    transparent 60%,
+    rgba(42,100,150,0.1) 100%
+  );
+}
+
+.modal-left img {
+  max-height: 500px; width: 100%;
+  object-fit: contain; position: relative; z-index: 1;
+  filter: sepia(5%) contrast(0.97) saturate(0.95);
+}
+
+/* Print registration marks decoration */
+.modal-left::after {
+  content: '';
+  position: absolute; inset: 12px;
+  border: 1px solid rgba(255,255,255,0.07);
+  pointer-events: none;
+}
+
+.modal-right {
+  padding: 3rem 2.5rem;
+  position: relative;
+  overflow-y: auto;
+  max-height: 600px;
+}
+
+.modal-close {
+  position: absolute; top: 1rem; right: 1rem;
+  background: none; border: none;
+  font-size: 1.3rem; cursor: pointer;
+  color: var(--mist); transition: color 0.3s;
+  line-height: 1;
+}
+.modal-close:hover { color: var(--vermilion); }
+
+.modal-series {
+  font-size: 0.68rem; letter-spacing: 0.3em;
+  color: var(--vermilion); margin-bottom: 0.7rem;
+  text-transform: uppercase;
+}
+.modal-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 1.45rem; color: var(--deep-indigo);
+  line-height: 1.35; margin-bottom: 0.25rem;
+}
+.modal-jp {
+  font-size: 0.9rem; color: var(--mist);
+  margin-bottom: 1.4rem; font-style: italic;
+}
+.modal-rule { width: 36px; height: 2px; background: var(--vermilion); margin-bottom: 1.4rem; }
+.modal-desc {
+  font-size: 0.9rem; color: var(--ink);
+  line-height: 1.95; margin-bottom: 1.8rem;
+}
+
+.modal-meta {
+  border-top: 1px solid rgba(30,63,98,0.12);
+  padding-top: 1.4rem;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+.meta-row label {
+  display: block; font-size: 0.62rem;
+  letter-spacing: 0.2em; color: var(--vermilion);
+  margin-bottom: 0.2rem;
+}
+.meta-row span { font-size: 0.82rem; color: var(--deep-indigo); }
+
+.modal-source {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(30,63,98,0.08);
+  font-size: 0.68rem; color: var(--mist); line-height: 1.5;
+}
+.modal-source a { color: var(--hiroshige-blue); }
+
+/* ══════════════════════════════════════
+   BOKASHI EXPLAINER SECTION
+   ══════════════════════════════════════ */
+#techniques {
+  background: var(--deep-indigo);
+  padding: 6rem 3rem;
+  position: relative; overflow: hidden;
+}
+#techniques::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(42,100,150,0.2) 0%, transparent 60%);
+}
+
+#techniques .section-title { color: white; }
+#techniques .section-eyebrow { color: var(--cherry); }
+
+.techniques-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 2rem; max-width: 1100px; margin: 3rem auto 0;
+  position: relative;
+}
+
+.technique-card {
+  border: 1px solid rgba(255,255,255,0.08);
+  padding: 2rem 1.8rem;
+  background: rgba(255,255,255,0.03);
+  transition: background 0.3s;
+}
+.technique-card:hover { background: rgba(255,255,255,0.06); }
+
+.tech-demo {
+  height: 80px; width: 100%; margin-bottom: 1.4rem;
+  border-radius: 2px; position: relative; overflow: hidden;
+}
+
+/* Bokashi demo */
+.tech-demo.bokashi {
+  background: linear-gradient(180deg,
+    #aad0e8 0%, #5b9ec9 30%, #2a6496 60%, #1a3a5c 100%);
+}
+.tech-demo.bokashi::after {
+  content: '';position:absolute;inset:0;
+  background: repeating-linear-gradient(180deg,
+    transparent 0px, transparent 10px,
+    rgba(0,0,0,0.04) 10px, rgba(0,0,0,0.04) 11px);
+}
+
+/* Washi demo */
+.tech-demo.washi {
+  background: var(--aged);
+  background-image:
+    repeating-linear-gradient(90deg, transparent, transparent 6px, rgba(130,100,50,0.08) 6px, rgba(130,100,50,0.08) 7px),
+    repeating-linear-gradient(0deg, transparent, transparent 8px, rgba(110,80,40,0.05) 8px, rgba(110,80,40,0.05) 9px);
+}
+.tech-demo.washi::after {
+  content: '';position:absolute;inset:0;
+  background: radial-gradient(ellipse at 30% 40%, rgba(180,150,90,0.1) 0%, transparent 60%),
+    radial-gradient(ellipse at 70% 70%, rgba(150,120,70,0.08) 0%, transparent 50%);
+}
+
+/* Ukiyo-e contour demo */
+.tech-demo.contour {
+  background: var(--paper);
+}
+.tech-demo.contour svg { width: 100%; height: 100%; }
+
+/* Registration offset demo */
+.tech-demo.registration {
+  background: #e8d8c0;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.tech-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 1.05rem; color: white;
+  margin-bottom: 0.6rem;
+}
+.tech-title-jp {
+  font-size: 0.7rem; color: var(--mist);
+  letter-spacing: 0.15em; margin-bottom: 0.8rem; display: block;
+}
+.tech-desc {
+  font-size: 0.82rem; color: rgba(200,210,220,0.8);
+  line-height: 1.8;
+}
+
+/* ══════════════════════════════════════
+   CREATOR SECTION
+   ══════════════════════════════════════ */
+#creator {
+  background: var(--cream);
+  padding: 0 0 6rem;
+  background-image:
+    repeating-linear-gradient(90deg, transparent, transparent 20px, rgba(160,130,80,0.04) 20px, rgba(160,130,80,0.04) 21px),
+    repeating-linear-gradient(0deg, transparent, transparent 20px, rgba(120,100,60,0.025) 20px, rgba(120,100,60,0.025) 21px);
+}
+
+.creator-wrap {
+  max-width: 1150px; margin: 0 auto;
+  display: grid; grid-template-columns: 300px 1fr;
+  gap: 3rem; padding: 0 3rem;
+  align-items: start;
+}
+
+/* Canvas */
+.canvas-outer {
+  position: relative;
+}
+.canvas-border {
+  border: 3px solid var(--indigo);
+  padding: 4px;
+  background: var(--deep-indigo);
+  position: relative;
+}
+.canvas-border::before {
+  content:''; position:absolute; inset:8px;
+  border: 1px solid rgba(255,255,255,0.08);
+  pointer-events: none; z-index: 10;
+}
+
+#myCanvas {
+  display: block;
+  width: 100%; aspect-ratio: 3/4;
+  cursor: crosshair;
+}
+
+.canvas-jp-label {
+  position: absolute; right: 14px; top: 14px;
+  writing-mode: vertical-rl;
+  font-family: 'Shippori Mincho', serif;
+  font-size: 0.58rem; color: rgba(255,255,255,0.35);
+  letter-spacing: 0.15em; pointer-events: none;
+  z-index: 5;
+}
+
+.canvas-btns {
+  display: flex; gap: 0.7rem; margin-top: 0.9rem;
+}
+.btn {
+  flex:1; padding: 0.65rem;
+  font-family: inherit; font-size: 0.8rem;
+  letter-spacing: 0.1em; cursor: pointer;
+  border: none; transition: all 0.3s;
+}
+.btn-red { background: var(--vermilion); color: white; }
+.btn-red:hover { background: #a02820; }
+.btn-outline {
+  background: transparent;
+  border: 1.5px solid var(--indigo);
+  color: var(--indigo);
+}
+.btn-outline:hover { background: var(--indigo); color: white; }
+
+/* Controls */
+.ctrl-panel { display: flex; flex-direction: column; gap: 1.5rem; }
+
+.ctrl-block {
+  border: 1px solid rgba(30,63,98,0.15);
+  background: rgba(30,63,98,0.03);
+  padding: 1.3rem 1.4rem;
+}
+.ctrl-block h4 {
+  font-size: 0.68rem; letter-spacing: 0.3em;
+  color: var(--vermilion); text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+/* Sky pills */
+.sky-row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.sky-pill {
+  padding: 0.42rem 0.9rem;
+  border: 1px solid rgba(30,63,98,0.3);
+  background: transparent; color: var(--indigo);
+  font-family: inherit; font-size: 0.75rem;
+  cursor: pointer; transition: all 0.25s; border-radius: 2px;
+}
+.sky-pill.on, .sky-pill:hover {
+  background: var(--indigo); color: white; border-color: var(--indigo);
+}
+
+/* Element buttons */
+.elem-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+.elem-btn {
+  aspect-ratio: 1;
+  background: rgba(30,63,98,0.05);
+  border: 1px solid rgba(30,63,98,0.15);
+  color: var(--indigo); font-family: inherit;
+  font-size: 0.65rem; cursor: pointer;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 0.25rem; padding: 0.4rem;
+  transition: all 0.25s; text-align: center;
+}
+.elem-btn .ico { font-size: 1.4rem; line-height: 1; }
+.elem-btn:hover, .elem-btn.active {
+  background: rgba(193,53,40,0.1);
+  border-color: var(--vermilion);
+  color: var(--vermilion);
+}
+
+/* Palette */
+.palette-row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.swatch {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer; transition: all 0.25s;
+}
+.swatch:hover, .swatch.on {
+  border-color: var(--deep-indigo);
+  transform: scale(1.18);
+}
+
+/* ══════════════════════════════════════
+   ABOUT
+   ══════════════════════════════════════ */
+#about {
+  background: var(--aged);
+  padding: 6rem 3rem;
+  background-image:
+    repeating-linear-gradient(88deg, transparent, transparent 22px, rgba(140,110,60,0.05) 22px, rgba(140,110,60,0.05) 23px);
+}
+.about-inner {
+  max-width: 960px; margin: 0 auto;
+  display: grid; grid-template-columns: 220px 1fr;
+  gap: 4rem; align-items: start;
+  margin-top: 3rem;
+}
+.about-seal {
+  text-align: center;
+}
+.about-seal svg { width: 100%; border: 2px solid var(--indigo); }
+.about-seal p {
+  font-size: 0.72rem; color: var(--mist);
+  margin-top: 0.7rem; letter-spacing: 0.1em;
+}
+
+.about-text h3 {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 1.3rem; color: var(--deep-indigo);
+  margin-bottom: 1rem;
+}
+.about-text p {
+  font-size: 0.9rem; color: var(--ink);
+  line-height: 1.95; margin-bottom: 1.1rem;
+}
+
+.timeline {
+  margin-top: 2rem;
+  padding-left: 1.4rem;
+  border-left: 2px solid var(--vermilion);
+}
+.tl-item {
+  margin-bottom: 1.3rem; position: relative;
+}
+.tl-item::before {
+  content:''; position:absolute;
+  left: -1.6rem; top: 0.35rem;
+  width: 7px; height: 7px;
+  background: var(--vermilion); border-radius: 50%;
+}
+.tl-year {
+  font-size: 0.72rem; color: var(--gold);
+  letter-spacing: 0.15em; margin-bottom: 0.2rem;
+}
+.tl-text { font-size: 0.85rem; color: var(--ink); line-height: 1.7; }
+
+/* ══════════════════════════════════════
+   FOOTER
+   ══════════════════════════════════════ */
+footer {
+  background: var(--ink);
+  padding: 3rem 2rem;
+  text-align: center;
+  border-top: 3px solid var(--vermilion);
+}
+footer .ft-jp {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 1.7rem; color: var(--paper);
+  letter-spacing: 0.3em; margin-bottom: 0.7rem;
+}
+footer p { color: var(--mist); font-size: 0.78rem; letter-spacing: 0.1em; }
+footer .ft-note { margin-top: 0.5rem; color: #444; font-size: 0.7rem; }
+
+/* Scroll reveal */
+.reveal { opacity:0; transform: translateY(32px); transition: opacity 0.7s ease, transform 0.7s ease; }
+.reveal.in { opacity:1; transform: translateY(0); }
+
+/* Mobile */
+@media (max-width: 768px) {
+  nav { padding: 0 1.5rem; }
+  .nav-links { display: none; }
+  .art-grid { padding: 0 1.5rem; grid-template-columns: repeat(auto-fill, minmax(240px,1fr)); }
+  .modal { grid-template-columns: 1fr; }
+  .modal-left { min-height: 260px; }
+  .creator-wrap { grid-template-columns: 1fr; padding: 0 1.5rem; }
+  .about-inner { grid-template-columns: 1fr; }
+  .about-seal { max-width: 200px; margin: 0 auto; }
+  .techniques-grid { grid-template-columns: 1fr; }
+  #techniques { padding: 4rem 1.5rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- Texture overlays -->
+<div class="washi-overlay"></div>
+<div class="grain-overlay"></div>
+
+<!-- ═══ NAV ═══ -->
+<nav>
+  <div class="nav-logo">広重の<em>江戸</em></div>
+  <ul class="nav-links">
+    <li><a onclick="scrollTo('categories')">风景系列</a></li>
+    <li><a onclick="scrollTo('techniques')">印刷技艺</a></li>
+    <li><a onclick="scrollTo('creator')">创作工坊</a></li>
+    <li><a onclick="scrollTo('about')">画师传略</a></li>
+  </ul>
+</nav>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <div class="hero-bokashi"></div>
+
+  <!-- Mountain SVG scene -->
+  <div class="hero-scene">
+    <svg viewBox="0 0 1200 400" preserveAspectRatio="xMidYMax meet"
+         xmlns="http://www.w3.org/2000/svg"
+         style="position:absolute;bottom:0;width:100%;height:100%;">
+      <!-- Water -->
+      <rect x="0" y="300" width="1200" height="100" fill="#0e1f33" opacity="0.7"/>
+      <!-- Water ripples -->
+      <g opacity="0.25" stroke="rgba(100,160,200,0.5)" stroke-width="1.5" fill="none">
+        <path d="M0,320 Q200,312 400,320 Q600,328 800,320 Q1000,312 1200,320"/>
+        <path d="M0,340 Q200,332 400,340 Q600,348 800,340 Q1000,332 1200,340"/>
+        <path d="M0,360 Q150,352 300,360 Q450,368 600,360 Q750,352 900,360 Q1050,368 1200,360"/>
+      </g>
+      <!-- Far mountains -->
+      <polygon points="0,300 200,180 400,300" fill="#0e2a40" opacity="0.5"/>
+      <polygon points="900,300 1100,160 1200,300" fill="#0e2a40" opacity="0.5"/>
+      <!-- Main Fuji -->
+      <polygon points="600,40 340,300 860,300" fill="#1a3858" opacity="0.8"/>
+      <!-- Fuji snow cap -->
+      <polygon points="600,40 540,120 660,120" fill="white" opacity="0.85"/>
+      <polygon points="600,40 560,100 640,100" fill="white" opacity="0.95"/>
+      <!-- Treeline -->
+      <g fill="#071520">
+        <rect x="280" y="272" width="5" height="30"/><polygon points="283,258 274,282 292,282"/>
+        <rect x="310" y="268" width="5" height="34"/><polygon points="313,253 304,278 322,278"/>
+        <rect x="870" y="272" width="5" height="30"/><polygon points="873,258 864,282 882,282"/>
+        <rect x="900" y="268" width="5" height="34"/><polygon points="903,253 894,278 912,278"/>
+        <rect x="135" y="268" width="5" height="34"/><polygon points="138,253 129,278 147,278"/>
+        <rect x="1050" y="265" width="5" height="37"/><polygon points="1053,250 1044,275 1062,275"/>
+      </g>
+      <!-- Boat silhouette -->
+      <g fill="#071828" opacity="0.8">
+        <path d="M540,295 L660,295 L650,308 L550,308 Z"/>
+        <line x1="600" y1="295" x2="600" y2="270" stroke="#071828" stroke-width="2"/>
+        <path d="M600,270 L600,285 L625,278 Z" fill="#1a3050"/>
+      </g>
+    </svg>
+  </div>
+
+  <!-- Petals -->
+  <div class="petals-wrap" id="petalsWrap"></div>
+
+  <div class="hero-content">
+    <div class="hero-eyebrow">Utagawa Hiroshige · 1797–1858 · 浮世绘名所</div>
+    <h1 class="hero-title">広重の江戸</h1>
+    <div class="hero-rule"></div>
+    <div class="hero-subtitle">名所江户百景 · 东海道五十三次</div>
+    <p class="hero-desc">透过大都会博物馆馆藏真迹，探索江户时代最伟大的风景画师笔下的雨、雪、月、浪……</p>
+    <button class="hero-cta" onclick="scrollTo('categories')">探索系列作品 →</button>
+  </div>
+</section>
+
+<!-- ═══ CATEGORIES ═══ -->
+<section id="categories">
+  <div class="section-head reveal">
+    <div class="section-eyebrow">大都会博物馆公版馆藏</div>
+    <h2 class="section-title">风景分类鉴赏
+      <small>名所図絵 · 五十三次 · 六十余州</small>
+    </h2>
+    <div class="section-rule"></div>
+  </div>
+
+  <div class="cat-tabs reveal" id="catTabs">
+    <button class="cat-tab active" data-cat="all"><span>全部</span></button>
+    <button class="cat-tab" data-cat="rain"><span>雨·雪·气象</span></button>
+    <button class="cat-tab" data-cat="water"><span>水·舟·渡口</span></button>
+    <button class="cat-tab" data-cat="mountain"><span>山·富士</span></button>
+    <button class="cat-tab" data-cat="road"><span>宿场·街道</span></button>
+    <button class="cat-tab" data-cat="moon"><span>月·夜·秋</span></button>
+    <button class="cat-tab" data-cat="festival"><span>节庆·花</span></button>
+  </div>
+
+  <div class="art-grid reveal" id="artGrid"></div>
+</section>
+
+<!-- ═══ TECHNIQUES ═══ -->
+<section id="techniques">
+  <div class="section-head reveal">
+    <div class="section-eyebrow" style="color:var(--cherry)">木版印刷技艺</div>
+    <h2 class="section-title" style="color:white">广重美学解析
+      <small style="color:var(--mist)">浮世绘技法 · 広重の美意識</small>
+    </h2>
+    <div class="section-rule"></div>
+  </div>
+
+  <div class="techniques-grid reveal">
+    <div class="technique-card">
+      <div class="tech-demo bokashi"></div>
+      <div class="tech-title">暈し（Bokashi）</div>
+      <span class="tech-title-jp">渐层晕染技法</span>
+      <p class="tech-desc">广重最标志性的天空表现手法。通过在木版上用湿刷反复刷染，使颜料从浓至淡自然晕开，形成天空的层次渐变。广重对靛蓝色的极致运用，造就了举世闻名的「广重蓝」。</p>
+    </div>
+    <div class="technique-card">
+      <div class="tech-demo washi"></div>
+      <div class="tech-title">和紙（Washi）</div>
+      <span class="tech-title-jp">楮树皮手漉和纸</span>
+      <p class="tech-desc">浮世绘使用日本传统手工和纸，以楮（桑科）树皮为原料。纸张的纤维方向、细微的纹理凹凸，赋予了印刷品独特的质感——这正是数字复制品难以完全还原的核心所在。</p>
+    </div>
+    <div class="technique-card">
+      <div class="tech-demo contour">
+        <svg viewBox="0 0 200 80" xmlns="http://www.w3.org/2000/svg">
+          <!-- Stylized wave in Hiroshige outline style -->
+          <path d="M10,60 Q30,20 50,55 Q70,90 90,45 Q110,10 130,50 Q150,85 170,40 L190,55" 
+                stroke="#1e3f62" stroke-width="2.5" fill="none"/>
+          <path d="M10,70 Q35,40 55,65 Q75,90 95,55 Q115,25 135,60 Q155,90 175,50 L190,65" 
+                stroke="#1e3f62" stroke-width="1.5" fill="rgba(42,100,150,0.15)"/>
+          <path d="M0,75 Q40,55 80,72 Q120,90 160,68 L200,75 L200,80 L0,80Z" 
+                fill="#2a6496" opacity="0.3"/>
+        </svg>
+      </div>
+      <div class="tech-title">輪郭線（Key Block）</div>
+      <span class="tech-title-jp">墨线版印刷</span>
+      <p class="tech-desc">浮世绘的第一道工序是「墨摺絵」——用最精细的墨线版印出所有轮廓。广重的线条既工整又富生命力，是整幅画的骨架，后续色版都在此基础上套印。</p>
+    </div>
+    <div class="technique-card">
+      <div class="tech-demo registration" style="position:relative;overflow:hidden;">
+        <!-- Misregistration demo SVG -->
+        <svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" style="width:90%;height:90%">
+          <circle cx="45" cy="40" r="22" fill="rgba(42,100,150,0.55)"/>
+          <circle cx="48" cy="43" r="22" fill="rgba(193,53,40,0.45)"/>
+          <circle cx="46.5" cy="41.5" r="22" fill="none" stroke="#1a1208" stroke-width="1.2"/>
+          <text x="85" y="30" font-size="7" fill="#555" font-family="serif">色版</text>
+          <text x="85" y="42" font-size="7" fill="#555" font-family="serif">套印</text>
+          <text x="85" y="54" font-size="7" fill="#555" font-family="serif">偏差</text>
+        </svg>
+      </div>
+      <div class="tech-title">見当（Kento）套印</div>
+      <span class="tech-title-jp">多版精确对位</span>
+      <p class="tech-desc">一幅广重作品往往需要10—20块色版逐一套印。工匠在版木边角刻出「见当」定位槽，确保每块版精确对齐。轻微的套印偏差有时反而增添了手工印刷的温暖质感。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CREATOR ═══ -->
+<section id="creator">
+  <div class="section-head reveal">
+    <div class="section-eyebrow">创作工坊</div>
+    <h2 class="section-title">浮世绘风格创作
+      <small>広重スタイル · 自由創作</small>
+    </h2>
+    <div class="section-rule"></div>
+  </div>
+
+  <div class="creator-wrap">
+    <!-- Canvas -->
+    <div class="canvas-outer reveal">
+      <div class="canvas-border">
+        <canvas id="myCanvas"></canvas>
+        <div class="canvas-jp-label">歌川広重 作</div>
+      </div>
+      <div class="canvas-btns">
+        <button class="btn btn-outline" onclick="clearAll()">清空</button>
+        <button class="btn btn-red" onclick="saveWork()">↓ 保存作品</button>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="ctrl-panel reveal">
+
+      <!-- Sky -->
+      <div class="ctrl-block">
+        <h4>天空氛围 — 广重蓝 Bokashi</h4>
+        <div class="sky-row" id="skyBtns">
+          <button class="sky-pill on" data-sky="dawn">黎明</button>
+          <button class="sky-pill" data-sky="day">晴日</button>
+          <button class="sky-pill" data-sky="dusk">黄昏</button>
+          <button class="sky-pill" data-sky="night">夜景</button>
+          <button class="sky-pill" data-sky="rain">骤雨</button>
+          <button class="sky-pill" data-sky="snow">雪景</button>
+          <button class="sky-pill" data-sky="storm">风暴</button>
+        </div>
+      </div>
+
+      <!-- Elements -->
+      <div class="ctrl-block">
+        <h4>添加景物元素</h4>
+        <div class="elem-grid">
+          <button class="elem-btn" onclick="addEl('fuji')"><span class="ico">🏔</span>富士山</button>
+          <button class="elem-btn" onclick="addEl('pine')"><span class="ico">🌲</span>松树</button>
+          <button class="elem-btn" onclick="addEl('cherry')"><span class="ico">🌸</span>樱花</button>
+          <button class="elem-btn" onclick="addEl('moon')"><span class="ico">🌕</span>月亮</button>
+          <button class="elem-btn" onclick="addEl('boat')"><span class="ico">⛵</span>渡船</button>
+          <button class="elem-btn" onclick="addEl('bridge')"><span class="ico">🌉</span>拱桥</button>
+          <button class="elem-btn" onclick="addEl('crane')"><span class="ico">🦢</span>仙鹤</button>
+          <button class="elem-btn" onclick="addEl('rain')"><span class="ico">🌧</span>雨丝</button>
+          <button class="elem-btn" onclick="addEl('wave')"><span class="ico">🌊</span>浪纹</button>
+          <button class="elem-btn" onclick="addEl('pagoda')"><span class="ico">⛩</span>塔楼</button>
+          <button class="elem-btn" onclick="addEl('snow')"><span class="ico">❄</span>飞雪</button>
+          <button class="elem-btn" onclick="addEl('fireworks')"><span class="ico">🎇</span>烟火</button>
+        </div>
+      </div>
+
+      <!-- Palette -->
+      <div class="ctrl-block">
+        <h4>广重调色盘</h4>
+        <div class="palette-row" id="palette"></div>
+        <p style="font-size:0.72rem;color:var(--mist);margin-top:0.7rem;line-height:1.7">
+          拖拽元素调整位置 · 右键点击元素删除
+        </p>
+      </div>
+
+      <!-- Tip -->
+      <div class="ctrl-block" style="border-color:rgba(193,53,40,0.2);background:rgba(193,53,40,0.04)">
+        <h4 style="color:var(--cherry)">広重流 构图要领</h4>
+        <p style="font-size:0.8rem;color:var(--ink);line-height:1.85">
+          · 天空留白要大，用bokashi渐变表现深度<br>
+          · 近景放大遮挡，远景缩小虚化<br>
+          · 对角线构图营造动感（雨·雪·路）<br>
+          · 水面倒影增加层次感<br>
+          · 红色印章是点睛之笔
+        </p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══ ABOUT ═══ -->
+<section id="about">
+  <div class="section-head reveal">
+    <div class="section-eyebrow">画师传略</div>
+    <h2 class="section-title">歌川広重
+      <small>Utagawa Hiroshige · 1797–1858 · 江户の浮世绘师</small>
+    </h2>
+    <div class="section-rule"></div>
+  </div>
+
+  <div class="about-inner reveal">
+    <div class="about-seal">
+      <svg viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg">
+        <rect width="200" height="260" fill="#1e3f62"/>
+        <rect x="10" y="10" width="180" height="240" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+        <!-- Portrait silhouette -->
+        <ellipse cx="100" cy="90" rx="42" ry="52" fill="#c8a878"/>
+        <ellipse cx="100" cy="52" rx="42" ry="18" fill="#1a1a1a"/>
+        <rect x="58" y="52" width="7" height="38" fill="#1a1a1a"/>
+        <rect x="135" y="52" width="7" height="38" fill="#1a1a1a"/>
+        <!-- Kimono -->
+        <rect x="62" y="130" width="76" height="110" fill="#2a2a3a"/>
+        <rect x="58" y="124" width="84" height="14" rx="4" fill="#1a1a28"/>
+        <line x1="100" y1="130" x2="100" y2="240" stroke="#b8831a" stroke-width="1.2"/>
+        <!-- Eyes -->
+        <ellipse cx="86" cy="87" rx="4.5" ry="3" fill="#1a1a1a"/>
+        <ellipse cx="114" cy="87" rx="4.5" ry="3" fill="#1a1a1a"/>
+        <!-- Mouth -->
+        <path d="M90,105 Q100,111 110,105" stroke="#8b5a3c" stroke-width="1.3" fill="none"/>
+        <!-- Seal character -->
+        <text x="100" y="252" text-anchor="middle" fill="rgba(255,255,255,0.2)"
+              font-size="11" font-family="serif">広重</text>
+      </svg>
+      <p>歌川広重 · 安政五年（1858）辞世</p>
+    </div>
+
+    <div class="about-text">
+      <h3>「东洋的风景诗人」</h3>
+      <p>歌川广重（1797–1858），本名安藤德太郎，江户（今东京）出身。他的父亲是世袭的消防武士，幼年便展现出惊人的绘画天赋，十五岁拜入浮世绘名师歌川丰广门下。</p>
+      <p>广重的一生横跨了江户幕府最后的盛世与衰落。他以风景画彻底革新了浮世绘的语言——用「广重蓝」（Hiroshige Blue）描绘出日本四季的哀愁之美，将骤雨、飞雪、朦胧月色化为永恒。他笔下的江户，是一个无处不是诗的世界。</p>
+      <p>梵高曾亲手临摹《名所江户百景》中的《大桥安宅骤雨》与《龟户梅屋敷》，莫奈、塞尚亦深受其影响。本网站所展示的真迹图片，均来自大都会艺术博物馆（The Met）公版开放馆藏。</p>
+
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-year">1797年</div>
+          <div class="tl-text">出生于江户八代洲河岸，父为消防武士</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-year">1812年</div>
+          <div class="tl-text">拜入歌川丰广门下，开始正式浮世绘训练</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-year">1833年</div>
+          <div class="tl-text">出版《东海道五十三次》，声名大振，奠定风景画大师地位</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-year">1856–1858年</div>
+          <div class="tl-text">创作《名所江户百景》共119幅，成为绝笔系列</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-year">1858年</div>
+          <div class="tl-text">因霍乱疫症辞世，享年六十一岁，留世作品逾8,000幅</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="ft-jp">広重の世界</div>
+  <p>歌川広重浮世绘风景 · 江户时代艺术探索</p>
+  <p class="ft-note">作品图片来源：大都会艺术博物馆（The Met）Open Access 公版馆藏 · 教育与艺术鉴赏用途</p>
+</footer>
+
+<!-- ═══ MODAL ═══ -->
+<div class="modal-bg" id="modalBg" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-left">
+      <img id="mImg" src="" alt="" loading="lazy"/>
+    </div>
+    <div class="modal-right">
+      <button class="modal-close" onclick="closeModalDirect()">✕</button>
+      <div class="modal-series" id="mSeries"></div>
+      <h2 class="modal-title" id="mTitle"></h2>
+      <div class="modal-jp" id="mJp"></div>
+      <div class="modal-rule"></div>
+      <p class="modal-desc" id="mDesc"></p>
+      <div class="modal-meta">
+        <div class="meta-row"><label>年代</label><span id="mDate"></span></div>
+        <div class="meta-row"><label>系列</label><span id="mSer2"></span></div>
+        <div class="meta-row"><label>技法</label><span id="mTech"></span></div>
+        <div class="meta-row"><label>馆藏</label><span id="mMuseum"></span></div>
+      </div>
+      <div class="modal-source">
+        图片来源：<a id="mLink" href="#" target="_blank">大都会艺术博物馆 The Metropolitan Museum of Art</a>
+        ·  Open Access 公版馆藏，可自由使用
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ─────────────────────────────────────────
+   ARTWORK DATA — Real Met Museum images
+───────────────────────────────────────── */
+const artworks = [
+  {
+    id: 55433, cat: 'rain',
+    title: '大桥安宅骤雨',
+    titleJp: '大はしあたけの夕立 — 名所江户百景',
+    series: '名所江户百景', date: '1857年', tech: '多色木版印刷（锦绘）',
+    museum: '大都会艺术博物馆 The Met',
+    img: 'https://images.metmuseum.org/CRDImages/as/web-large/DP130156.jpg',
+    imgLarge: 'https://images.metmuseum.org/CRDImages/as/original/DP130156.jpg',
+    metUrl: 'https://www.metmuseum.org/art/collection/search/55433',
+    desc: '《名所江户百景》中震撼力最强的雨景之作，也是广重最广为人知的代表作。倾盆骤雨以密集斜线群表现，行人在大桥上奔跑，隅田川在雨中若隐若现。梵高曾亲手临摹此作，称赞广重"用最少的线条表现了最强烈的自然力量"。广重蓝与白色雨线的强烈对比，是bokashi技法与构图天才的完美结合。',
+  },
+  {
+    id: 44623, cat: 'rain',
+    title: '隅田川雪景',
+    titleJp: '隅田川の雪 — 江户名所',
+    series: '江户名所', date: '约1835年', tech: '多色木版印刷（锦绘）',
+    museum: '大都会艺术博物馆 The Met',
+    img: 'https://images.metmuseum.org/CRDImages/as/web-large/DP122167.jpg',
+    imgLarge: 'https://images.metmuseum.org/CRDImages/as/original/DP122167.jpg',
+    metUrl: 'https://www.metmuseum.org/art/collection/search/44623',
+    desc: '冬日的隅田川，积雪覆盖两岸，渡船与行人的剪影点缀画面。广重以极淡的蓝白色调营造出寂静的雪夜氛围，和纸上轻盈的白色空间即是积雪本身——不着一笔而雪景天成，是广重"以无胜有"构图哲学的精髓。',
+  },
+  {
+    id: 36965, cat: 'rain',
+    title: '东海道 · 四日市风暴',
+    titleJp: '四日市 山中川 — 東海道五十三次',
+    series: '东海道五十三次', date: '约1833年', tech: '多色木版印刷（锦绘）',
+    museum: '大都会艺术博物馆 The Met',
+    img: 'https://images.metmuseum.org/CRDImages/as/web-large/DP122224.jpg',
+    imgLarge: 'https://images.metmuseum.org/CRDImages/as/original/DP122224.jpg',
+    metUrl: 'https://www.metmuseum.org/art/collection/search/36965',
+    desc: '《东海道五十三次》中最具戏剧张力的气象描绘。狂风将行旅的伞、斗笠、货物席卷而去，旅人在风中奋力前行。对角线的强劲构图与扭曲的松枝，共同表现出自然界无情的力量，与广重其他作品的静谧形成了鲜明对比。',
+  },
+  {
+    id: 36935, cat: 'mountain',
+    title: '东海道 · 原 晨富士',
+    titleJp: '原 朝の富士 — 東海道五十三次',
+    series: '东海道五十三次', date: '约1833–34年', tech: '多色木版印刷（锦绘）',
+    museum: '大都会艺术博物馆 The Met',
+    img: 'https://images.metmuseum.org/CRDImages/as/web-large/DP122187.jpg',
+    imgLarge: 'https://images.metmuseum.org/CRDImages/as/original/DP122187.jpg',
+    metUrl: 'https://www.metmuseum.org/art/collection/search/36935',
+    desc: '清晨的富士山沐浴在金色曙光中，牛车与旅人的剪影点缀前景。广重将富士置于画面正中，以水平线将天空与大地分割，晨曦的粉橙色渐变从山顶延伸至天际。这是《东海道五十三次》中富士山最端庄从容的姿态，也是后世引用最频繁的版本之一。',
+  },
+  {
+    id: 55049, cat: 'road',
+    title: '东海道 · 平冢 松并木',
+    titleJp: '平塚 縄手道 — 東海道五十三次',
+    series: '东海道五十三次', date: '约1834年', tech: '多色木版印刷（锦绘）',
+    museum: '大都会艺术博物馆 The Met',
+    img: 'https://images.metmuseum.org/CRDImages/as/web-large/DP122192.jpg',
+    imgLarge: 'https://images.metmuseum.org/CRDImages/as/original/DP122192.jpg',
+    metUrl: 'https://www.metmuseum.org/art/collection/search/55049',
+    desc: '沿海道而行的旅人，道路两侧是苍劲的松并木（路旁松树行道）。远处富士山在云雾中若隐若现，广重以精准的透视感和松树的弯曲姿态，表现出海风的方向与力量。前景的行旅与后景的富士构成了《东海道》中最具空间感的画面之一。',
+  },
+  {
+    id: 37248, cat: 'road',
+    title: '东海道 · 大津',
+    titleJp: '大津 — 東海道五十三次',
+    series: '东海道五十三次', date: '约1833年', tech: '多色木版印刷（锦绘）',
+    museum: '大都会艺术博物馆 The Met',
+    img: 'https://images.metmuseum.org/CRDImages/as/web-large/DP123205.jpg',
+    imgLarge: 'https://images.metmuseum.org/CRDImages/as/original/DP123205.jpg',
+    metUrl: 'https://www.metmuseum.org/art/collection/search/37248',
+    desc: '《东海道五十三次》最后一站大津的热闹景象。宿场内商家云集，各色人物行色匆匆——挑担的商贩、骑马的旅人、撑伞的行人共同构成了江户时代宿场文化的生动写照。广重以横向舒展的构图展现了宿场街道的生机。',
+  },
+  {
+    id: 55997, cat: 'water',
+    title: '淀川 月夜舟行',
+    titleJp: '淀川 — 京都名所之内',
+    series: '京都名所之内', date: '1834年', tech: '多色木版印刷（锦绘）',
+    museum: '大都会艺术博物馆 The Met',
+    img: 'https://images.metmuseum.org/CRDImages/as/web-large/DP120486.jpg',
+    imgLarge: 'https://images.metmuseum.org/CRDImages/as/original/DP120486.jpg',
+    metUrl: 'https://www.metmuseum.org/art/collection/search/55997',
+    desc: '夜色中的淀川，明月悬于远山之上，数艘客舟平静地顺流而下。广重以极大面积的深靛蓝色天空表现月夜的宁静深邃——这种「以蓝色倾诉夜晚」的手法是广重的独特语言。船上的乘客以极简笔墨呈现，与江面的开阔形成温柔对比。',
+  },
+  {
+    id: 460337, cat: 'water',
+    title: '隅田川 舟行',
+    titleJp: '隅田川 舟行',
+    series: '江户风景', date: '约1817–58年', tech: '水墨淡彩',
+    museum: '大都会艺术博物馆 The Met',
+    img: 'https://images.metmuseum.org/CRDImages/rl/web-large/sf-rlc-1975-1-983.jpg',
+    imgLarge: 'https://images.metmuseum.org/CRDImages/rl/original/sf-rlc-1975-1-983.jpg',
+    metUrl: 'https://www.metmuseum.org/art/collection/search/460337',
+    desc: '隅田川上一叶扁舟，以水墨淡彩表现，笔法简练而意境悠远。这类更接近文人画风格的小品，展示了广重除锦绘之外的另一面——以疏淡的笔墨捕捉江户水乡的日常诗意。天水之间的广阔留白，使画面充满呼吸感。',
+  },
+  {
+    id: 56518, cat: 'water',
+    title: '岚山 满花',
+    titleJp: '嵐山満花 — 京都名所之内',
+    series: '京都名所之内', date: '约1834年', tech: '多色木版印刷（锦绘）',
+    museum: '大都会艺术博物馆 The Met',
+    img: 'https://images.metmuseum.org/CRDImages/as/web-large/DP120472.jpg',
+    imgLarge: 'https://images.metmuseum.org/CRDImages/as/original/DP120472.jpg',
+    metUrl: 'https://www.metmuseum.org/art/collection/search/56518',
+    desc: '京都岚山，樱花盛开之际，游舟穿行于花影与山色之间。广重以渐变的蓝绿色描绘大堰川的水面，远山青翠与近景粉樱形成冷暖对比。这是《京都名所之内》中最诗意的一幅，展现了广重将色彩情感化的非凡才能。',
+  },
+  {
+    id: 44980, cat: 'moon',
+    title: '信州更科 月下稻田',
+    titleJp: '信州更科田毎の月 — 六十余州名所图会',
+    series: '六十余州名所图会', date: '约1832年', tech: '多色木版印刷（锦绘）',
+    museum: '大都会艺术博物馆 The Met',
+    img: 'https://images.metmuseum.org/CRDImages/as/web-large/DP135593.jpg',
+    imgLarge: 'https://images.metmuseum.org/CRDImages/as/original/DP135593.jpg',
+    metUrl: 'https://www.metmuseum.org/art/collection/search/44980',
+    desc: '信州更科以「田毎の月」（每块稻田各映一轮月）的奇景著称。广重以俯瞰视角描绘层层梯田，每块水田中都映出皎洁的月光，无数个月亮在大地上闪烁。这种将自然奇观转化为诗意视觉的能力，正是广重超越其他浮世绘师的关键所在。',
+  },
+  {
+    id: 56519, cat: 'moon',
+    title: '多摩川 秋月',
+    titleJp: '多摩川の秋月 — 名月八景',
+    series: '名月八景', date: '约1838年', tech: '多色木版印刷（锦绘）',
+    museum: '大都会艺术博物馆 The Met',
+    img: 'https://images.metmuseum.org/CRDImages/as/web-large/DP123257.jpg',
+    imgLarge: 'https://images.metmuseum.org/CRDImages/as/original/DP123257.jpg',
+    metUrl: 'https://www.metmuseum.org/art/collection/search/56519',
+    desc: '秋夜的多摩川，满月高悬，水面映出一道银色光带。芦苇丛中渔火点点，小舟静静停泊。广重以纵向构图将月亮置于画面正上方，月光穿过云层洒向江面的bokashi渐变，是整幅画情感表达的核心——宁静、孤独、而充满圆满之感。',
+  },
+  {
+    id: 56931, cat: 'moon',
+    title: '吉原 日本堤',
+    titleJp: '吉原 日本堤 — 名所江户百景',
+    series: '名所江户百景', date: '1857年', tech: '多色木版印刷（锦绘）',
+    museum: '大都会艺术博物馆 The Met',
+    img: 'https://images.metmuseum.org/CRDImages/as/web-large/DP121473.jpg',
+    imgLarge: 'https://images.metmuseum.org/CRDImages/as/original/DP121473.jpg',
+    metUrl: 'https://www.metmuseum.org/art/collection/search/56931',
+    desc: '深秋的日本堤，杨柳萧疏，行人稀落，远处吉原的灯火在雾中隐约可见。一群飞鸟掠过昏黄的天际，月色将整个画面染上一层淡淡的哀愁。这是广重对江户边缘地带秋暮气氛最动人的描绘之一，寂寥中藏着无尽的诗意。',
+  },
+  {
+    id: 36542, cat: 'festival',
+    title: '三河岛 鹤与菜花',
+    titleJp: '三河島 水鶴 — 名所江户百景',
+    series: '名所江户百景', date: '1857年', tech: '多色木版印刷（锦绘）',
+    museum: '大都会艺术博物馆 The Met',
+    img: 'https://images.metmuseum.org/CRDImages/as/web-large/DP121662.jpg',
+    imgLarge: 'https://images.metmuseum.org/CRDImages/as/original/DP121662.jpg',
+    metUrl: 'https://www.metmuseum.org/art/collection/search/36542',
+    desc: '金黄的菜花田中，白鹤结伴而行，远处是朦胧的江户水乡。广重以强烈的近景菜花（金黄色大色块）遮挡中景，是《名所江户百景》中极具视觉冲击力的构图。白鹤的姿态各异，展现出广重对自然生物的精准观察与艺术提炼。',
+  },
+  {
+    id: 37093, cat: 'festival',
+    title: '两国桥 川开烟火',
+    titleJp: '両国橋 川開き花火 — 名所江户百景',
+    series: '名所江户百景', date: '1858年', tech: '多色木版印刷（锦绘）',
+    museum: '大都会艺术博物馆 The Met',
+    img: 'https://images.metmuseum.org/CRDImages/as/web-large/DP121524.jpg',
+    imgLarge: 'https://images.metmuseum.org/CRDImages/as/original/DP121524.jpg',
+    metUrl: 'https://www.metmuseum.org/art/collection/search/37093',
+    desc: '隅田川的盛夏烟火大会——江户最热闹的节庆之一。烟火在夜空中绽放，照亮了桥下密密麻麻的游舟和两岸攒动的人群。广重将烟火绽放的瞬间定格于画面中央，以黑色的夜空衬托出烟火的绚烂，是广重晚年最富活力的作品之一，也是他去世前一年完成的杰作。',
+  },
+];
+
+/* ─────────────────────────────────────────
+   RENDER GRID
+───────────────────────────────────────── */
+const catNames = {
+  rain: '雨·雪·气象', water: '水·舟·渡口',
+  mountain: '山·富士', road: '宿场·街道',
+  moon: '月·夜·秋', festival: '节庆·花'
+};
+
+function renderGrid(filter = 'all') {
+  const grid = document.getElementById('artGrid');
+  grid.innerHTML = '';
+  artworks.forEach((art, i) => {
+    const visible = filter === 'all' || art.cat === filter;
+    const card = document.createElement('div');
+    card.className = 'art-card' + (visible ? ' show' : '');
+    card.innerHTML = `
+      <div class="card-img">
+        <img src="${art.img}" alt="${art.title}" loading="lazy"/>
+        <div class="card-seal">広重</div>
+        <div class="card-num">${String(i+1).padStart(2,'0')}</div>
+      </div>
+      <div class="card-body">
+        <div class="card-cat">${catNames[art.cat] || art.cat}</div>
+        <div class="card-title">${art.title}</div>
+        <div class="card-title-jp">${art.titleJp}</div>
+        <div class="card-date">${art.date} · ${art.series}</div>
+      </div>`;
+    card.addEventListener('click', () => openModal(art));
+    grid.appendChild(card);
+  });
+}
+
+renderGrid();
+
+/* TABS */
+document.getElementById('catTabs').addEventListener('click', e => {
+  const tab = e.target.closest('.cat-tab');
+  if (!tab) return;
+  document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  renderGrid(tab.dataset.cat);
+});
+
+/* ─────────────────────────────────────────
+   MODAL
+───────────────────────────────────────── */
+function openModal(art) {
+  document.getElementById('mImg').src = art.imgLarge || art.img;
+  document.getElementById('mSeries').textContent = catNames[art.cat];
+  document.getElementById('mTitle').textContent = art.title;
+  document.getElementById('mJp').textContent = art.titleJp;
+  document.getElementById('mDesc').textContent = art.desc;
+  document.getElementById('mDate').textContent = art.date;
+  document.getElementById('mSer2').textContent = art.series;
+  document.getElementById('mTech').textContent = art.tech;
+  document.getElementById('mMuseum').textContent = art.museum;
+  document.getElementById('mLink').href = art.metUrl;
+  document.getElementById('modalBg').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(e) {
+  if (e.target === document.getElementById('modalBg')) closeModalDirect();
+}
+function closeModalDirect() {
+  document.getElementById('modalBg').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModalDirect(); });
+
+/* ─────────────────────────────────────────
+   CREATOR CANVAS
+───────────────────────────────────────── */
+const canvas = document.getElementById('myCanvas');
+const ctx = canvas.getContext('2d');
+let W, H;
+const elements = [];
+let dragEl = null, dragOff = {x:0,y:0};
+let activeSky = 'dawn';
+let activeColor = '#2a6496';
+
+function resizeCanvas() {
+  const wrap = canvas.parentElement;
+  W = canvas.width = wrap.clientWidth;
+  H = canvas.height = Math.round(W * 4/3);
+  canvas.style.height = H + 'px';
+  drawScene();
+}
+
+/* Sky palettes — bokashi gradients */
+const skies = {
+  dawn:  { stops: ['#fdc38a','#f09060','#c86840','#8a3820'], water: '#b85828' },
+  day:   { stops: ['#aad4f0','#6aacda','#3a88c0','#1a5a90'], water: '#1a4a80' },
+  dusk:  { stops: ['#f07030','#d04820','#a02810','#601008'], water: '#801820' },
+  night: { stops: ['#080e18','#0e1e30','#162840','#1e3858'], water: '#0a1828' },
+  rain:  { stops: ['#4a5a68','#384858','#283848','#182838'], water: '#182838' },
+  snow:  { stops: ['#c8dce8','#a8c4d8','#88acc4','#6890a8'], water: '#5880a0' },
+  storm: { stops: ['#2a2a38','#1a1a28','#282830','#1e1e28'], water: '#101018' },
+};
+
+function drawScene() {
+  if (!W) return;
+  ctx.clearRect(0, 0, W, H);
+
+  const sky = skies[activeSky];
+
+  // Bokashi sky — layered bands to simulate woodblock printing
+  const skyH = H * 0.58;
+  const grad = ctx.createLinearGradient(0, 0, 0, skyH);
+  sky.stops.forEach((c, i) => grad.addColorStop(i/(sky.stops.length-1), c));
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, skyH);
+
+  // Bokashi banding — simulate uneven ink absorption
+  ctx.save();
+  ctx.globalAlpha = 0.04;
+  for (let y = 0; y < skyH; y += 12) {
+    ctx.fillStyle = y % 24 < 12 ? 'rgba(0,0,0,1)' : 'rgba(255,255,255,1)';
+    ctx.fillRect(0, y, W, 6);
+  }
+  ctx.restore();
+
+  // Horizon bokashi blend
+  const horizGrad = ctx.createLinearGradient(0, skyH-30, 0, skyH+30);
+  horizGrad.addColorStop(0, sky.stops[sky.stops.length-1]);
+  horizGrad.addColorStop(0.5, adjustAlpha(sky.water, 0.7));
+  horizGrad.addColorStop(1, sky.water);
+  ctx.fillStyle = horizGrad;
+  ctx.fillRect(0, skyH-30, W, 60);
+
+  // Water
+  const waterGrad = ctx.createLinearGradient(0, skyH, 0, H);
+  waterGrad.addColorStop(0, sky.water);
+  waterGrad.addColorStop(1, darken(sky.water, 0.4));
+  ctx.fillStyle = waterGrad;
+  ctx.fillRect(0, skyH, W, H - skyH);
+
+  // Water ripples
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 10; i++) {
+    const y = skyH + 20 + i * ((H-skyH-20)/10);
+    ctx.beginPath();
+    for (let x = 0; x <= W; x += 2) {
+      const yo = Math.sin(x * 0.06 + i * 0.8) * 2.5;
+      x === 0 ? ctx.moveTo(x, y+yo) : ctx.lineTo(x, y+yo);
+    }
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // Rain overlay
+  if (activeSky === 'rain' || activeSky === 'storm') {
+    ctx.save();
+    ctx.strokeStyle = 'rgba(180,210,230,0.2)';
+    ctx.lineWidth = 0.7;
+    for (let i = 0; i < 120; i++) {
+      const x = Math.random()*W, y = Math.random()*H;
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x+8, y+22); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // Snow overlay
+  if (activeSky === 'snow') {
+    ctx.save();
+    ctx.fillStyle = 'rgba(240,248,255,0.6)';
+    for (let i = 0; i < 80; i++) {
+      const r = 1 + Math.random()*2.5;
+      ctx.beginPath();
+      ctx.arc(Math.random()*W, Math.random()*H, r, 0, Math.PI*2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // Washi paper texture bands
+  ctx.save();
+  ctx.globalAlpha = 0.025;
+  for (let y = 0; y < H; y += 4) {
+    ctx.fillStyle = y % 8 < 4 ? '#000' : '#fff';
+    ctx.fillRect(0, y, W, 2);
+  }
+  ctx.restore();
+
+  // Frame — print border
+  ctx.strokeStyle = 'rgba(80,50,20,0.5)';
+  ctx.lineWidth = 5;
+  ctx.strokeRect(3, 3, W-6, H-6);
+  ctx.strokeStyle = 'rgba(80,50,20,0.15)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(11, 11, W-22, H-22);
+
+  // Red publisher seal
+  ctx.fillStyle = '#c13528';
+  ctx.fillRect(W-38, H-48, 26, 36);
+  ctx.fillStyle = 'white';
+  ctx.font = `bold ${10}px "Shippori Mincho", serif`;
+  ctx.textAlign = 'center';
+  ctx.fillText('広', W-25, H-32);
+  ctx.fillText('重', W-25, H-20);
+
+  drawElements();
+}
+
+/* Element renderers */
+const drawers = {
+  fuji(x, y, s) {
+    const w = s*90, h = s*80;
+    ctx.fillStyle = '#243e5a';
+    ctx.beginPath();
+    ctx.moveTo(x, y-h);
+    ctx.lineTo(x-w, y+h*0.2);
+    ctx.lineTo(x+w, y+h*0.2);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'white';
+    ctx.beginPath();
+    ctx.moveTo(x, y-h);
+    ctx.lineTo(x-w*0.22, y-h*0.45);
+    ctx.lineTo(x+w*0.22, y-h*0.45);
+    ctx.closePath(); ctx.fill();
+  },
+  pine(x, y, s) {
+    ctx.fillStyle = '#1a3510';
+    ctx.fillRect(x-s*4, y, s*8, s*50);
+    [[0,-0.85],[0,-0.55],[0,-0.25]].forEach(([,dy]) => {
+      ctx.beginPath();
+      ctx.moveTo(x, y+dy*s*60);
+      ctx.lineTo(x-s*35, y+(dy+0.38)*s*60);
+      ctx.lineTo(x+s*35, y+(dy+0.38)*s*60);
+      ctx.closePath(); ctx.fill();
+    });
+  },
+  cherry(x, y, s) {
+    ctx.strokeStyle = '#4a2a0e'; ctx.lineWidth = 3*s;
+    ctx.beginPath(); ctx.moveTo(x,y); ctx.quadraticCurveTo(x-s*40,y-s*55,x-s*70,y-s*15); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x,y); ctx.quadraticCurveTo(x+s*40,y-s*55,x+s*70,y-s*15); ctx.stroke();
+    ctx.fillStyle = 'rgba(210,90,120,0.65)';
+    for (let i=0;i<30;i++) {
+      const bx=x+(Math.random()-0.5)*s*160, by=y-Math.random()*s*80;
+      ctx.beginPath(); ctx.arc(bx,by,s*8+Math.random()*s*5,0,Math.PI*2); ctx.fill();
+    }
+  },
+  moon(x, y, s) {
+    ctx.save();
+    ctx.shadowColor='#f0e870'; ctx.shadowBlur=30*s;
+    ctx.fillStyle='#f5ec90';
+    ctx.beginPath(); ctx.arc(x,y,s*28,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  },
+  boat(x, y, s) {
+    ctx.fillStyle='#1a1a1a';
+    ctx.beginPath();
+    ctx.moveTo(x-s*45,y); ctx.lineTo(x+s*45,y);
+    ctx.lineTo(x+s*30,y+s*28); ctx.lineTo(x-s*30,y+s*28);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle='#1a1a1a'; ctx.lineWidth=2*s;
+    ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x,y-s*60); ctx.stroke();
+    ctx.fillStyle='rgba(220,190,130,0.8)';
+    ctx.beginPath(); ctx.moveTo(x,y-s*60); ctx.lineTo(x,y-s*15); ctx.lineTo(x+s*40,y-s*38); ctx.closePath(); ctx.fill();
+  },
+  bridge(x, y, s) {
+    ctx.strokeStyle='#4a3018'; ctx.lineWidth=s*4;
+    ctx.beginPath(); ctx.arc(x,y+s*30,s*55,Math.PI,0); ctx.stroke();
+    ctx.lineWidth=s*6;
+    ctx.beginPath(); ctx.moveTo(x-s*55,y+s*30); ctx.lineTo(x-s*55,y+s*55); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x+s*55,y+s*30); ctx.lineTo(x+s*55,y+s*55); ctx.stroke();
+    ctx.fillStyle='#4a3018';
+    ctx.fillRect(x-s*65,y+s*26,s*130,s*8);
+    // Railing
+    for(let i=-5;i<=5;i++) {
+      ctx.lineWidth=s*1.5;
+      ctx.beginPath(); ctx.moveTo(x+i*s*12,y+s*26); ctx.lineTo(x+i*s*12,y+s*16); ctx.stroke();
+    }
+  },
+  crane(x, y, s) {
+    ctx.strokeStyle='#1a1a1a'; ctx.lineWidth=s*2;
+    // Body
+    ctx.beginPath(); ctx.ellipse(x,y,s*18,s*10,0,0,Math.PI*2); ctx.fillStyle='white'; ctx.fill(); ctx.stroke();
+    // Neck
+    ctx.beginPath(); ctx.moveTo(x+s*15,y-s*5); ctx.quadraticCurveTo(x+s*28,y-s*25,x+s*22,y-s*35); ctx.stroke();
+    ctx.beginPath(); ctx.arc(x+s*20,y-s*38,s*5,0,Math.PI*2); ctx.fillStyle='white'; ctx.fill(); ctx.stroke();
+    ctx.fillStyle='#c13528';
+    ctx.beginPath(); ctx.arc(x+s*20,y-s*44,s*4,0,Math.PI*2); ctx.fill();
+    // Wings
+    ctx.beginPath(); ctx.moveTo(x,y-s*5); ctx.quadraticCurveTo(x-s*40,y-s*30,x-s*55,y-s*10); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x,y-s*5); ctx.quadraticCurveTo(x+s*30,y-s*25,x+s*48,y-s*8); ctx.stroke();
+    // Legs
+    ctx.lineWidth=s*1.5;
+    ctx.beginPath(); ctx.moveTo(x-s*8,y+s*8); ctx.lineTo(x-s*8,y+s*30); ctx.lineTo(x-s*20,y+s*40); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x+s*8,y+s*8); ctx.lineTo(x+s*8,y+s*30); ctx.lineTo(x+s*20,y+s*40); ctx.stroke();
+  },
+  rain(x, y, s) {
+    ctx.strokeStyle='rgba(180,210,240,0.35)'; ctx.lineWidth=0.8;
+    for(let i=0;i<150;i++) {
+      const rx=Math.random()*W, ry=Math.random()*H;
+      ctx.beginPath(); ctx.moveTo(rx,ry); ctx.lineTo(rx+9,ry+24); ctx.stroke();
+    }
+  },
+  wave(x, y, s) {
+    const w=s*70;
+    for(let i=0;i<3;i++) {
+      const yo = i*s*22;
+      ctx.strokeStyle=`rgba(42,100,150,${0.6-i*0.15})`; ctx.lineWidth=s*(2.5-i*0.5);
+      ctx.fillStyle=`rgba(42,100,150,${0.1-i*0.02})`;
+      ctx.beginPath();
+      ctx.moveTo(x-w,y+yo);
+      ctx.bezierCurveTo(x-w*0.5,y-s*28+yo, x+w*0.5,y+s*28+yo, x+w,y+yo);
+      ctx.bezierCurveTo(x+w*0.5,y+s*42+yo, x-w*0.5,y+s*14+yo, x-w,y+s*28+yo);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+    }
+  },
+  pagoda(x, y, s) {
+    ctx.fillStyle='#2a1a0e';
+    for(let i=0;i<4;i++) {
+      const lw=s*(50-i*10), lx=x-lw/2, ly=y+i*s*20;
+      ctx.fillRect(lx,ly,lw,s*5);
+      ctx.beginPath(); ctx.moveTo(x-lw*0.7,ly); ctx.lineTo(x,ly-s*15); ctx.lineTo(x+lw*0.7,ly); ctx.closePath(); ctx.fill();
+    }
+    ctx.fillRect(x-s*10,y+s*80,s*20,s*20);
+    // Finial
+    ctx.beginPath(); ctx.moveTo(x,y-s*8); ctx.lineTo(x,y-s*30); ctx.strokeStyle='#2a1a0e'; ctx.lineWidth=s*2; ctx.stroke();
+  },
+  snow(x, y, s) {
+    ctx.fillStyle='rgba(240,248,255,0.75)';
+    for(let i=0;i<120;i++) {
+      const r=1+Math.random()*3;
+      ctx.beginPath();
+      ctx.arc(Math.random()*W,Math.random()*H,r,0,Math.PI*2);
+      ctx.fill();
+    }
+  },
+  fireworks(x, y, s) {
+    const colors=['#f8d060','#f07040','#60c0f0','#f060a0','#80e080'];
+    colors.forEach((c,ci) => {
+      ctx.strokeStyle=c; ctx.lineWidth=s*1.5;
+      const cx2=x+(ci-2)*s*18, cy2=y+ci%2*s*10;
+      for(let a=0;a<12;a++) {
+        const angle=a*Math.PI/6;
+        ctx.beginPath();
+        ctx.moveTo(cx2,cy2);
+        ctx.lineTo(cx2+Math.cos(angle)*s*28, cy2+Math.sin(angle)*s*28);
+        ctx.stroke();
+      }
+      ctx.fillStyle=c;
+      ctx.beginPath(); ctx.arc(cx2,cy2,s*4,0,Math.PI*2); ctx.fill();
+    });
+  },
+};
+
+function drawElements() {
+  elements.forEach(el => {
+    ctx.save();
+    ctx.globalAlpha = 0.92;
+    drawers[el.type] && drawers[el.type](el.x, el.y, el.s);
+    ctx.restore();
+  });
+}
+
+function addEl(type) {
+  elements.push({ type, x: W*0.4+Math.random()*W*0.2, y: H*0.35+Math.random()*H*0.15, s: 0.7+Math.random()*0.5 });
+  drawScene();
+}
+
+/* Drag */
+canvas.addEventListener('mousedown', e => {
+  const r = canvas.getBoundingClientRect();
+  const mx = (e.clientX-r.left)*(W/r.width), my = (e.clientY-r.top)*(H/r.height);
+  for (let i=elements.length-1;i>=0;i--) {
+    const el=elements[i];
+    if(Math.hypot(mx-el.x,my-el.y)<60*el.s) { dragEl=el; dragOff={x:mx-el.x,y:my-el.y}; break; }
+  }
+});
+window.addEventListener('mousemove', e => {
+  if(!dragEl) return;
+  const r=canvas.getBoundingClientRect();
+  dragEl.x=(e.clientX-r.left)*(W/r.width)-dragOff.x;
+  dragEl.y=(e.clientY-r.top)*(H/r.height)-dragOff.y;
+  drawScene();
+});
+window.addEventListener('mouseup', () => { dragEl=null; });
+canvas.addEventListener('contextmenu', e => {
+  e.preventDefault();
+  const r=canvas.getBoundingClientRect();
+  const mx=(e.clientX-r.left)*(W/r.width), my=(e.clientY-r.top)*(H/r.height);
+  const idx=elements.findLastIndex(el=>Math.hypot(mx-el.x,my-el.y)<60*el.s);
+  if(idx>-1){ elements.splice(idx,1); drawScene(); }
+});
+// Touch
+canvas.addEventListener('touchstart',e=>{e.preventDefault();const t=e.touches[0];canvas.dispatchEvent(new MouseEvent('mousedown',{clientX:t.clientX,clientY:t.clientY}));});
+canvas.addEventListener('touchmove',e=>{e.preventDefault();const t=e.touches[0];window.dispatchEvent(new MouseEvent('mousemove',{clientX:t.clientX,clientY:t.clientY}));});
+canvas.addEventListener('touchend',()=>window.dispatchEvent(new MouseEvent('mouseup')));
+
+function clearAll() { elements.length=0; drawScene(); }
+function saveWork() {
+  const link=document.createElement('a');
+  link.download='広重スタイル_浮世绘.png';
+  link.href=canvas.toDataURL();
+  link.click();
+}
+
+/* Sky switcher */
+document.getElementById('skyBtns').addEventListener('click', e => {
+  const pill=e.target.closest('.sky-pill');
+  if(!pill) return;
+  document.querySelectorAll('.sky-pill').forEach(p=>p.classList.remove('on'));
+  pill.classList.add('on');
+  activeSky=pill.dataset.sky;
+  drawScene();
+});
+
+/* Color palette */
+const paletteColors = [
+  '#2a6496','#1a3858','#5b9ec9','#c13528','#b8831a',
+  '#2a4e1e','#cc5577','#7d9db5','#1a1208','#f2e8d5',
+  '#4a7a40','#d4a838','#8a3820','#506878'
+];
+const palDiv=document.getElementById('palette');
+paletteColors.forEach(c=>{
+  const sw=document.createElement('div');
+  sw.className='swatch'+(c===activeColor?' on':'');
+  sw.style.background=c;
+  sw.addEventListener('click',()=>{
+    document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('on'));
+    sw.classList.add('on'); activeColor=c;
+  });
+  palDiv.appendChild(sw);
+});
+
+/* Helpers */
+function adjustAlpha(hex, a) {
+  const r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+function darken(hex, f) {
+  const r=Math.round(parseInt(hex.slice(1,3),16)*f);
+  const g=Math.round(parseInt(hex.slice(3,5),16)*f);
+  const b=Math.round(parseInt(hex.slice(5,7),16)*f);
+  return `rgb(${r},${g},${b})`;
+}
+
+/* Init canvas */
+window.addEventListener('load', () => { setTimeout(resizeCanvas, 50); });
+window.addEventListener('resize', resizeCanvas);
+
+/* ─────────────────────────────────────────
+   PETALS
+───────────────────────────────────────── */
+(function(){
+  const wrap=document.getElementById('petalsWrap');
+  for(let i=0;i<14;i++){
+    const p=document.createElement('div');
+    p.className='petal';
+    p.style.cssText=`left:${Math.random()*100}vw;animation-duration:${6+Math.random()*9}s;animation-delay:${Math.random()*12}s;transform:rotate(${Math.random()*360}deg);opacity:0;`;
+    wrap.appendChild(p);
+  }
+})();
+
+/* ─────────────────────────────────────────
+   SCROLL REVEAL
+───────────────────────────────────────── */
+const ro=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in');}),{threshold:0.08});
+document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
+
+/* Smooth scroll */
+function scrollTo(id){ document.getElementById(id)?.scrollIntoView({behavior:'smooth'}); }
+</script>
+</body>
+</html>
